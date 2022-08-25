@@ -1,10 +1,10 @@
-.type-first-letters {
+.typebox {
     display: flex;
     align-items: center;
     font-size: 1.5em;
 }
 
-.type-first-letters > div {
+.typebox > div {
     flex: 9;
     margin-block: 1em;
     height: 1.5em;
@@ -12,7 +12,7 @@
     border: 1px solid black;
 }
 
-.type-first-letters > button {
+.typebox > button {
     flex: 1;
     height: 3em;
 }
