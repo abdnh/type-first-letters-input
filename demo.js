@@ -10,9 +10,7 @@ function setEndOfContenteditable(contentEditableElement) {
 }
 
 function cleanSavedLetters(offset, i) {
-    for (let j = offset; j < inputFirstLetters[i].length; j++) {
-        inputFirstLetters[i][j] = null;
-    }
+    inputFirstLetters[i] = inputFirstLetters[i].slice(0, offset);
 }
 
 function firstLettersInputHandler(i) {
@@ -20,6 +18,7 @@ function firstLettersInputHandler(i) {
         const text = e.target.textContent;
         const words = text.split(/\s+/).filter(w => w);
         if (!words[words.length - 1]) {
+            // Clear all saved letters when input is cleared
             cleanSavedLetters(0, i);
             return;
         }
@@ -47,35 +46,45 @@ function firstLettersInputHandler(i) {
     };
 }
 
-function verbatimInputHandler() {
+function cleanSavedVerbatimValues(offset, i) {
+    verbatimInputValues[i] = verbatimInputValues[i].slice(0, offset);
+}
+
+function verbatimInputHandler(i) {
     return (e) => {
         const answer = e.target.parentElement.dataset.answer;
         let text = e.target.textContent;
         text = text.replaceAll('\u00A0', ' ');
-        console.log('text', text);
         e.target.innerHTML = '';
-        for (const [i, c] of Object.entries(text)) {
+        for (const [j, c] of Object.entries(text)) {
             let color;
-            if (answer[i] && answer[i].toLowerCase() == c.toLowerCase()) {
+            let currentLetter = verbatimInputValues[i][j];
+            if (!currentLetter) {
+                currentLetter = c;
+                verbatimInputValues[i][j] = currentLetter;
+            }
+            if (answer[j] && answer[j].toLowerCase() == currentLetter.toLowerCase()) {
                 color = 'green';
             } else {
                 color = 'red';
             }
             const span = document.createElement("span");
             span.style.backgroundColor = color;
-            let d = answer[i] ? answer[i] : c;
-            if (c === ' ') {
+            let d = answer[j] ? answer[j] : currentLetter;
+            if (d === ' ') {
                 d = '&nbsp;';
             }
             span.innerHTML = d;
             e.target.appendChild(span);
         }
+        cleanSavedVerbatimValues(text.length, i);
         setEndOfContenteditable(e.target);
     };
 }
 
 const elements = Array.from(document.querySelectorAll(".typebox"));
 const inputFirstLetters = [];
+const verbatimInputValues = [];
 for (const [i, element] of Object.entries(elements)) {
     const input = document.createElement("div");
     input.contentEditable = 'true';
@@ -83,15 +92,17 @@ for (const [i, element] of Object.entries(elements)) {
     clearButton.textContent = "Clear";
     element.append(input, clearButton);
     inputFirstLetters[i] = [];
+    verbatimInputValues[i] = [];
     if (element.dataset.type.toLowerCase() === "first-letters") {
         input.addEventListener("input", firstLettersInputHandler(i));
     } else {
-        input.addEventListener("input", verbatimInputHandler());
+        input.addEventListener("input", verbatimInputHandler(i));
     }
     clearButton.addEventListener("click", ((i) => {
         return (e) => {
             e.target.previousElementSibling.textContent = '';
             inputFirstLetters[i] = [];
+            verbatimInputValues[i] = [];
         }
     })(i));
 }
