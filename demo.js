@@ -46,7 +46,7 @@ function firstLettersInputHandler(i) {
                     }
                     const span = document.createElement("span");
                     span.style.backgroundColor = color;
-                    span.innerHTML = `${inputWord[k] ? inputWord[k] : c}`;
+                    span.innerHTML = `${strippedAnswerWord[k] ? strippedAnswerWord[k] : c}`;
                     if (k == strippedAnswerWord.length - 1) {
                         span.innerHTML += '&nbsp;';
                     }
