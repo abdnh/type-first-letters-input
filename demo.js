@@ -23,25 +23,53 @@ function firstLettersInputHandler(i) {
         e.target.innerHTML = '';
         const answerWords = e.target.parentElement.dataset.answer.split(" ");
         for (const [j, word] of Object.entries(words)) {
-            let firstLetter = userInput[i][j];
-            if (!firstLetter) {
-                firstLetter = word[0];
-                userInput[i][j] = firstLetter;
-            }
+
             let strippedAnswerWord = '';
             if (answerWords[j]) {
                 strippedAnswerWord = answerWords[j].replace(SKIPPED_CHARS_RE, '');
             }
-            let color;
-            if (strippedAnswerWord && strippedAnswerWord[0].toLowerCase().startsWith(firstLetter.toLowerCase())) {
-                color = 'green';
-            } else {
-                color = 'red';
+            if (/^\p{Number}+$/u.test(strippedAnswerWord)) {
+                let inputWord = userInput[i][j];
+                if (inputWord && inputWord.length !== word.length) {
+                    inputWord += word[word.length - 1];
+                }
+                else {
+                    inputWord = word;
+                }
+                userInput[i][j] = inputWord;
+                for (const [k, c] of Object.entries(inputWord)) {
+                    let color;
+                    if (c === strippedAnswerWord[k]) {
+                        color = 'green';
+                    } else {
+                        color = 'red';
+                    }
+                    const span = document.createElement("span");
+                    span.style.backgroundColor = color;
+                    span.innerHTML = `${inputWord[k] ? inputWord[k] : c}`;
+                    if (k == strippedAnswerWord.length - 1) {
+                        span.innerHTML += '&nbsp;';
+                    }
+                    e.target.appendChild(span);
+                }
             }
-            const span = document.createElement("span");
-            span.style.backgroundColor = color;
-            span.innerHTML = `${answerWords[j] ? answerWords[j] : firstLetter}&nbsp;`;
-            e.target.appendChild(span);
+            else {
+                let inputWord = userInput[i][j];
+                if (!inputWord) {
+                    inputWord = word;
+                    userInput[i][j] = inputWord;
+                }
+                let color;
+                if (strippedAnswerWord && strippedAnswerWord.toLowerCase().startsWith(inputWord.toLowerCase())) {
+                    color = 'green';
+                } else {
+                    color = 'red';
+                }
+                const span = document.createElement("span");
+                span.style.backgroundColor = color;
+                span.innerHTML = `${answerWords[j] ? answerWords[j] : inputWord}&nbsp;`;
+                e.target.appendChild(span);
+            }
         }
         clearUserInput(i, words.length);
         setEndOfContenteditable(e.target);
