@@ -13,6 +13,9 @@ function clearUserInput(i, offset) {
     userInput[i] = userInput[i].slice(0, offset);
 }
 
+const SKIPPED_CHARS_RE = /\p{Symbol}|\p{Punctuation}/gu;
+
+
 function firstLettersInputHandler(i) {
     return (e) => {
         const text = e.target.textContent;
@@ -20,13 +23,17 @@ function firstLettersInputHandler(i) {
         e.target.innerHTML = '';
         const answerWords = e.target.parentElement.dataset.answer.split(" ");
         for (const [j, word] of Object.entries(words)) {
-            let color;
             let firstLetter = userInput[i][j];
             if (!firstLetter) {
                 firstLetter = word[0];
                 userInput[i][j] = firstLetter;
             }
-            if (answerWords[j] && answerWords[j][0].toLowerCase().startsWith(firstLetter.toLowerCase())) {
+            let strippedAnswerWord = '';
+            if (answerWords[j]) {
+                strippedAnswerWord = answerWords[j].replace(SKIPPED_CHARS_RE, '');
+            }
+            let color;
+            if (strippedAnswerWord && strippedAnswerWord[0].toLowerCase().startsWith(firstLetter.toLowerCase())) {
                 color = 'green';
             } else {
                 color = 'red';
