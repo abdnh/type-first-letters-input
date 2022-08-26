@@ -20,10 +20,10 @@ function firstLettersInputHandler(i) {
     return (e) => {
         const text = e.target.textContent;
         const words = text.split(/\s+/).filter(w => w);
+        console.log(words)
         e.target.innerHTML = '';
-        const answerWords = e.target.parentElement.dataset.answer.split(" ");
+        const answerWords = e.target.parentElement.dataset.answer.split(" ").filter(w => w.replace(SKIPPED_CHARS_RE, ''));
         for (const [j, word] of Object.entries(words)) {
-
             let strippedAnswerWord = '';
             if (answerWords[j]) {
                 strippedAnswerWord = answerWords[j].replace(SKIPPED_CHARS_RE, '');
