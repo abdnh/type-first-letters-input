@@ -33,7 +33,7 @@ function firstLettersInputHandler(i) {
                 if (inputWord && inputWord.length !== word.length) {
                     inputWord += word[word.length - 1];
                 }
-                else {
+                else if(!inputWord) {
                     inputWord = word;
                 }
                 userInput[i][j] = inputWord;
