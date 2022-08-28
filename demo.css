@@ -16,3 +16,7 @@
     flex: 1;
     height: 3em;
 }
+
+.typebox > div > span {
+    display: inline-block;
+}
