@@ -7,14 +7,14 @@
 .typebox > div {
     flex: 9;
     margin-block: 1em;
-    height: 1.5em;
+    min-height: 1.5em;
     margin-inline: 1em;
     border: 1px solid black;
 }
 
 .typebox > button {
     flex: 1;
-    height: 3em;
+    min-height: 3em;
 }
 
 .typebox > div > span {
