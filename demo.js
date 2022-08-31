@@ -113,6 +113,8 @@ const userInput = [];
 for (const [i, element] of Object.entries(elements)) {
     const input = document.createElement("div");
     input.contentEditable = 'true';
+    // https://forums.ankiweb.net/t/keyboard-not-always-shown-when-focusing-html-input-contenteditable-elements-on-ankimobile/22711
+    input.classList.add("tappable");
     const clearButton = document.createElement("button");
     clearButton.textContent = "Clear";
     element.append(input, clearButton);
