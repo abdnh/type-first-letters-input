@@ -33,7 +33,7 @@ function firstLettersInputHandler(i) {
                 if (inputWord && inputWord.length !== word.length) {
                     inputWord += word[word.length - 1];
                 }
-                else if(!inputWord) {
+                else if (!inputWord) {
                     inputWord = word;
                 }
                 userInput[i][j] = inputWord;
@@ -76,38 +76,6 @@ function firstLettersInputHandler(i) {
     };
 }
 
-function verbatimInputHandler(i) {
-    return (e) => {
-        const answer = e.target.parentElement.dataset.answer;
-        let text = e.target.textContent;
-        text = text.replaceAll('\u00A0', ' ');
-        e.target.innerHTML = '';
-        for (const [j, c] of Object.entries(text)) {
-            let color;
-            let currentLetter = userInput[i][j];
-            if (!currentLetter) {
-                currentLetter = c;
-                userInput[i][j] = currentLetter;
-            }
-            if (answer[j] && answer[j].toLowerCase() == currentLetter.toLowerCase()) {
-                color = 'green';
-            } else {
-                color = 'red';
-            }
-            const span = document.createElement("span");
-            span.style.backgroundColor = color;
-            let d = answer[j] ? answer[j] : currentLetter;
-            if (d === ' ') {
-                d = '&nbsp;';
-            }
-            span.innerHTML = d;
-            e.target.appendChild(span);
-        }
-        clearUserInput(i, text.length);
-        setEndOfContenteditable(e.target);
-    };
-}
-
 const elements = Array.from(document.querySelectorAll(".typebox"));
 const userInput = [];
 for (const [i, element] of Object.entries(elements)) {
@@ -119,11 +87,7 @@ for (const [i, element] of Object.entries(elements)) {
     clearButton.textContent = "Clear";
     element.append(input, clearButton);
     userInput[i] = [];
-    if (element.dataset.type.toLowerCase() === "first-letters") {
-        input.addEventListener("input", firstLettersInputHandler(i));
-    } else {
-        input.addEventListener("input", verbatimInputHandler(i));
-    }
+    input.addEventListener("input", firstLettersInputHandler(i));
     clearButton.addEventListener("click", ((i) => {
         return (e) => {
             e.target.previousElementSibling.textContent = '';
