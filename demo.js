@@ -83,11 +83,13 @@ for (const [i, element] of Object.entries(elements)) {
     input.contentEditable = 'true';
     // https://forums.ankiweb.net/t/keyboard-not-always-shown-when-focusing-html-input-contenteditable-elements-on-ankimobile/22711
     input.classList.add("tappable");
-    // Automatically focus first input
-    input.autofocus = true;
     const clearButton = document.createElement("button");
     clearButton.textContent = "Clear";
     element.append(input, clearButton);
+    // Focus first input
+    if(i == 0) {
+        input.focus();
+    }
     userInput[i] = [];
     input.addEventListener("input", firstLettersInputHandler(i));
     clearButton.addEventListener("click", ((i) => {
