@@ -9,7 +9,12 @@
     margin-block: 1em;
     min-height: 1.5em;
     margin-inline: 1em;
-    border: 1px solid black;
+    border: 2px inset rgb(118, 118, 118);
+}
+
+.nightmode .typebox > div {
+    background-color: rgb(59, 59, 59);
+    border-color: rgb(133, 133, 133);
 }
 
 .typebox > button {
@@ -23,8 +28,10 @@
 
 .correct-section {
     background-color: #afa;
+    color: black;
 }
 
 .wrong-section {
     background-color: #faa;
+    color: black;
 }
