@@ -9,8 +9,8 @@ function setEndOfContenteditable(contentEditableElement) {
     selection.addRange(range);
 }
 
-function clearUserInput(i, offset) {
-    userInput[i] = userInput[i].slice(0, offset);
+function clearOldUserInput(context, offset) {
+    context.userInput = context.userInput.slice(0, offset);
 }
 
 const SKIPPED_CHARS_RE = /\p{Symbol}|\p{Punctuation}/gu;
@@ -19,65 +19,101 @@ const SKIPPED_CHARS_RE = /\p{Symbol}|\p{Punctuation}/gu;
 function firstLettersInputHandler(i) {
     return (e) => {
         const text = e.target.textContent;
-        const words = text.split(/\s+/).filter(w => w);
-        console.log(words)
+        const inputWords = text.split(/\s+/).filter(w => w).map(w => w.split("-")).flat();
         e.target.innerHTML = '';
-        const answerWords = e.target.parentElement.dataset.answer.split(" ").filter(w => w.replace(SKIPPED_CHARS_RE, ''));
-        for (const [j, word] of Object.entries(words)) {
-            let strippedAnswerWord = '';
-            if (answerWords[j]) {
-                strippedAnswerWord = answerWords[j].replace(SKIPPED_CHARS_RE, '');
+        const context = inputContexts[i];
+        const correctWords = context.correctWords;
+        if (context.userInput.length !== inputWords.length) {
+            context.userInput.push(inputWords[inputWords.length - 1]);
+        } else {
+            const lastInputWord = inputWords[inputWords.length - 1];
+            context.userInput[context.userInput.length - 1] += lastInputWord[lastInputWord.length - 1];
+        }
+        console.log(inputWords);
+        console.log(context);
+
+        for (const [j, inputWord] of Object.entries(inputWords)) {
+
+            const userWord = context.userInput[j];
+            let color;
+            if (!correctWords[j]) {
+                // More input words than there are answer words
+                color = 'red';
             }
-            if (/^\p{Number}+$/u.test(strippedAnswerWord)) {
-                let inputWord = userInput[i][j];
-                if (inputWord && inputWord.length !== word.length) {
-                    inputWord += word[word.length - 1];
-                }
-                else if (!inputWord) {
-                    inputWord = word;
-                }
-                userInput[i][j] = inputWord;
-                for (const [k, c] of Object.entries(inputWord)) {
-                    let color;
-                    if (c === strippedAnswerWord[k]) {
+            else if (!correctWords[j].wordToType) {
+                // Word consisting entirely of stripped letters (e.g. punctuation)
+                color = 'green';
+            }
+            else if (userWord.toLowerCase() === correctWords[j].wordToType.toLowerCase()) {
+                color = 'green';
+            } else if (userWord.length === correctWords[j].wordToType.length) {
+                color = 'red';
+            } else {
+                // Number
+                for (const [k, c] of Object.entries(userWord)) {
+                    if (c === correctWords[j].wordToType[k]) {
                         color = 'green';
                     } else {
                         color = 'red';
                     }
                     const span = document.createElement("span");
                     span.style.backgroundColor = color;
-                    span.innerHTML = `${strippedAnswerWord[k] ? strippedAnswerWord[k] : c}`;
-                    if (k == strippedAnswerWord.length - 1) {
-                        span.innerHTML += '&nbsp;';
-                    }
+                    // For numbers, we don't display stripped letters like punctuation for simplicity
+                    span.innerHTML = correctWords[j].wordToType[k];
                     e.target.appendChild(span);
                 }
+                continue;
             }
-            else {
-                let inputWord = userInput[i][j];
-                if (!inputWord) {
-                    inputWord = word;
-                    userInput[i][j] = inputWord;
-                }
-                let color;
-                if (strippedAnswerWord && strippedAnswerWord.toLowerCase().startsWith(inputWord.toLowerCase())) {
-                    color = 'green';
-                } else {
-                    color = 'red';
-                }
-                const span = document.createElement("span");
-                span.style.backgroundColor = color;
-                span.innerHTML = `${answerWords[j] ? answerWords[j] : inputWord}&nbsp;`;
-                e.target.appendChild(span);
-            }
+            const span = document.createElement("span");
+            span.style.backgroundColor = color;
+            // In the case of excess input words, display the input word, otherwise display the correct word
+            span.innerHTML = correctWords[j] ? correctWords[j].displayWord : inputWord;
+            span.innerHTML += correctWords[j] ? correctWords[j].appendStr : '&nbsp;';
+            e.target.appendChild(span);
         }
-        clearUserInput(i, words.length);
+
+        clearOldUserInput(context, inputWords.length);
         setEndOfContenteditable(e.target);
     };
 }
 
+class InputContext {
+    constructor(correctAnswer) {
+        this._parseCorrectAnswer(correctAnswer);
+        this.userInput = [];
+    }
+
+    _parseCorrectAnswer(correctAnswer) {
+        this.correctWords = [];
+        const splitWords = correctAnswer.split(/\s+/).map(w => {
+            const subWords = w.split("-");
+            if (w.includes('-')) {
+                // Append hyphen to first part so that it gets displayed
+                subWords[0] += '-';
+            };
+            return subWords;
+        }).flat();
+        for (let word of splitWords) {
+            let displayWord = word.trim();
+            let appendStr = '&nbsp;';
+            if (displayWord.endsWith("-")) {
+                appendStr = '-';
+                displayWord = displayWord.slice(0, -1);
+                console.log('displayWord', displayWord);
+            }
+            let wordToType = displayWord.replace(SKIPPED_CHARS_RE, "");
+            if (!/^\p{Number}+$/u.test(wordToType)) {
+                wordToType = wordToType[0];
+            }
+            this.correctWords.push({
+                displayWord, wordToType, appendStr
+            });
+        }
+    }
+}
+
 const elements = Array.from(document.querySelectorAll(".typebox"));
-const userInput = [];
+const inputContexts = [];
 for (const [i, element] of Object.entries(elements)) {
     const input = document.createElement("div");
     input.contentEditable = 'true';
@@ -87,15 +123,14 @@ for (const [i, element] of Object.entries(elements)) {
     clearButton.textContent = "Clear";
     element.append(input, clearButton);
     // Focus first input
-    if(i == 0) {
+    if (i == 0) {
         input.focus();
     }
-    userInput[i] = [];
+    inputContexts[i] = new InputContext(element.dataset.answer);
     input.addEventListener("input", firstLettersInputHandler(i));
-    clearButton.addEventListener("click", ((i) => {
+    clearButton.addEventListener("click", (() => {
         return (e) => {
             e.target.previousElementSibling.textContent = '';
-            userInput[i] = [];
         }
     })(i));
 }
