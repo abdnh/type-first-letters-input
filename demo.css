@@ -20,3 +20,11 @@
 .typebox > div > span {
     display: inline-block;
 }
+
+.correct-section {
+    background-color: #afa;
+}
+
+.wrong-section {
+    background-color: #faa;
+}

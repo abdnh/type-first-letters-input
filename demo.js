@@ -35,29 +35,29 @@ function firstLettersInputHandler(i) {
         for (const [j, inputWord] of Object.entries(inputWords)) {
 
             const userWord = context.userInput[j];
-            let color;
+            let classes = '';
             if (!correctWords[j]) {
                 // More input words than there are answer words
-                color = 'red';
+                classes = 'wrong-section';
             }
             else if (!correctWords[j].wordToType) {
                 // Word consisting entirely of stripped letters (e.g. punctuation)
-                color = 'green';
+                classes = 'correct-section';
             }
             else if (userWord.toLowerCase() === correctWords[j].wordToType.toLowerCase()) {
-                color = 'green';
+                classes = 'correct-section';
             } else if (userWord.length === correctWords[j].wordToType.length) {
-                color = 'red';
+                classes = 'wrong-section';
             } else {
                 // Number
                 for (const [k, c] of Object.entries(userWord)) {
                     if (c === correctWords[j].wordToType[k]) {
-                        color = 'green';
+                        classes = 'correct-section';
                     } else {
-                        color = 'red';
+                        classes = 'wrong-section';
                     }
                     const span = document.createElement("span");
-                    span.style.backgroundColor = color;
+                    span.classList.add(classes);
                     // For numbers, we don't display stripped letters like punctuation for simplicity
                     span.innerHTML = correctWords[j].wordToType[k];
                     e.target.appendChild(span);
@@ -65,7 +65,7 @@ function firstLettersInputHandler(i) {
                 continue;
             }
             const span = document.createElement("span");
-            span.style.backgroundColor = color;
+            span.classList.add(classes);
             // In the case of excess input words, display the input word, otherwise display the correct word
             span.innerHTML = correctWords[j] ? correctWords[j].displayWord : inputWord;
             span.innerHTML += correctWords[j] ? correctWords[j].appendStr : '&nbsp;';
