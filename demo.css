@@ -2,10 +2,12 @@
     display: flex;
     align-items: center;
     font-size: 1.2em;
+    flex-direction: column;
 }
 
 .typebox > div {
     flex: 9;
+    min-width: 100%;
     margin-block: 1em;
     min-height: 1.5em;
     margin-inline: 1em;
@@ -20,6 +22,7 @@
 .typebox > button {
     flex: 1;
     min-height: 3em;
+    min-width: 10%;
 }
 
 .typebox > div > span {
