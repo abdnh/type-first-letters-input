@@ -19,9 +19,6 @@ const SKIPPED_CHARS_RE = /\p{Symbol}|\p{Punctuation}/gu;
 function firstLettersInputHandler(i) {
     return (e) => {
         const text = e.target.textContent;
-        if (!text[text.length - 1].trim()) {
-            return;
-        }
         const inputWords = text.split(/\s+/).filter(w => w).map(w => w.split("-")).flat();
         e.target.innerHTML = '';
         const context = inputContexts[i];
@@ -81,7 +78,7 @@ function firstLettersInputHandler(i) {
 }
 
 function onKeyDown(event) {
-    if (event.code === "Backspace") {
+    if (["Space", "Backspace"].includes(event.code)) {
         event.preventDefault();
     }
 }
