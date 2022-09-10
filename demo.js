@@ -19,6 +19,9 @@ const SKIPPED_CHARS_RE = /\p{Symbol}|\p{Punctuation}/gu;
 function firstLettersInputHandler(i) {
     return (e) => {
         const text = e.target.textContent;
+        if (!text[text.length - 1].trim()) {
+            return;
+        }
         const inputWords = text.split(/\s+/).filter(w => w).map(w => w.split("-")).flat();
         e.target.innerHTML = '';
         const context = inputContexts[i];
@@ -77,6 +80,12 @@ function firstLettersInputHandler(i) {
     };
 }
 
+function onKeyDown(event) {
+    if (event.code === "Backspace") {
+        event.preventDefault();
+    }
+}
+
 class InputContext {
     constructor(correctAnswer) {
         this._parseCorrectAnswer(correctAnswer);
@@ -128,6 +137,7 @@ for (const [i, element] of Object.entries(elements)) {
     }
     inputContexts[i] = new InputContext(element.dataset.answer);
     input.addEventListener("input", firstLettersInputHandler(i));
+    input.addEventListener("keydown", onKeyDown);
     clearButton.addEventListener("click", (() => {
         return (e) => {
             e.target.previousElementSibling.textContent = '';
