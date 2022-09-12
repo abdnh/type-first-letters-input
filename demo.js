@@ -50,7 +50,7 @@ function firstLettersInputHandler(i) {
             }
             else if (userWord.toLowerCase() === correctWords[j].wordToType.toLowerCase()) {
                 classes = 'correct-section';
-            } else if (userWord.length === correctWords[j].wordToType.length) {
+            } else if (userWord.length === correctWords[j].wordToType.length && correctWords[j].inputType !== 'number') {
                 classes = 'wrong-section';
             } else {
                 // Number
@@ -65,6 +65,10 @@ function firstLettersInputHandler(i) {
                     // For numbers, we don't display stripped letters like punctuation for simplicity
                     span.innerHTML = correctWords[j].wordToType[k];
                     e.target.appendChild(span);
+                }
+                if (userWord.length === correctWords[j].wordToType.length && correctWords[j].inputType === 'number') {
+                    // If user typed all required digits, append the delimiting string
+                    e.target.children[e.target.children.length - 1].innerHTML += correctWords[j].appendStr;
                 }
                 continue;
             }
@@ -117,9 +121,12 @@ class InputContext {
                 appendStr = '-';
                 displayWord = displayWord.slice(0, -1);
             }
+            let inputType = 'firstletter';
             let wordToType = displayWord.replace(SKIPPED_CHARS_RE, "");
             if (!/^\p{Number}+$/u.test(wordToType)) {
                 wordToType = wordToType[0];
+            } else {
+                inputType = 'number';
             }
             if (!wordToType && this.correctWords.length) {
                 // if word is empty after stripping, display it in its pre-stripping state as soon as the previous word is revealed
@@ -127,7 +134,7 @@ class InputContext {
             }
             else {
                 this.correctWords.push({
-                    displayWord, wordToType, appendStr
+                    displayWord, wordToType, appendStr, inputType,
                 });
             }
         }
