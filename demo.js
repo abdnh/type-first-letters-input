@@ -29,8 +29,6 @@ function firstLettersInputHandler(i) {
             const lastInputWord = inputWords[inputWords.length - 1];
             context.userInput[context.userInput.length - 1] += lastInputWord[lastInputWord.length - 1];
         }
-        console.log(inputWords);
-        console.log(context);
 
         for (const [j, inputWord] of Object.entries(inputWords)) {
 
@@ -112,7 +110,6 @@ class InputContext {
             if (displayWord.endsWith("-")) {
                 appendStr = '-';
                 displayWord = displayWord.slice(0, -1);
-                console.log('displayWord', displayWord);
             }
             let wordToType = displayWord.replace(SKIPPED_CHARS_RE, "");
             if (!/^\p{Number}+$/u.test(wordToType)) {
