@@ -81,6 +81,13 @@ function onKeyDown(event) {
     if (["Space", "Backspace"].includes(event.code)) {
         event.preventDefault();
     }
+    if (["Enter", "NumpadEnter"].includes(event.code)) {
+        // Show answer side
+        if (window.bridgeCommand) {
+            bridgeCommand("ans");
+        }
+        event.preventDefault();
+    }
 }
 
 class InputContext {
