@@ -19,7 +19,13 @@ const SKIPPED_CHARS_RE = /\p{Symbol}|\p{Punctuation}/gu;
 function firstLettersInputHandler(i) {
     return (e) => {
         const text = e.target.textContent;
-        const inputWords = text.split(/\s+/).filter(w => w).map(w => w.split("-")).flat();
+        let inputWords = text.split(/\s+/)
+            .filter(w => w)
+            .map(w => w.split("-"))
+            .flat()
+            .map(w => w.replace(SKIPPED_CHARS_RE, ""))
+            .filter(w => w);
+
         e.target.innerHTML = '';
         const context = inputContexts[i];
         const correctWords = context.correctWords;
@@ -115,9 +121,15 @@ class InputContext {
             if (!/^\p{Number}+$/u.test(wordToType)) {
                 wordToType = wordToType[0];
             }
-            this.correctWords.push({
-                displayWord, wordToType, appendStr
-            });
+            if (!wordToType && this.correctWords.length) {
+                // if word is empty after stripping, display it in its pre-stripping state as soon as the previous word is revealed
+                this.correctWords[this.correctWords.length - 1].displayWord += ` ${displayWord}`;
+            }
+            else {
+                this.correctWords.push({
+                    displayWord, wordToType, appendStr
+                });
+            }
         }
     }
 }
