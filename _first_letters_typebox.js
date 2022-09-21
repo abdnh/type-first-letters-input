@@ -14,17 +14,14 @@
         context.userInput = context.userInput.slice(0, offset);
     }
 
-    const SKIPPED_CHARS_RE = /\p{Symbol}|\p{Punctuation}/gu;
-
+    const SKIPPED_CHARS_RE = /\p{Symbol}|\p{Punctuation}+/gu;
+    const SKIPPED_CHARS_GROUPED_RE = /(\p{Symbol}|\p{Punctuation})+/gu;
 
     function firstLettersInputHandler(i) {
         return (e) => {
             const text = e.target.textContent;
             let inputWords = text.split(/\s+/)
-                .filter(w => w)
-                .map(w => w.split("-"))
-                .flat()
-                .map(w => w.replace(SKIPPED_CHARS_RE, ""))
+                .map(w => w.split(SKIPPED_CHARS_RE)).flat()
                 .filter(w => w);
 
             e.target.innerHTML = '';
@@ -63,7 +60,6 @@
                         }
                         const span = document.createElement("span");
                         span.classList.add(classes);
-                        // For numbers, we don't display stripped letters like punctuation for simplicity
                         span.innerHTML = correctWords[j].wordToType[k];
                         e.target.appendChild(span);
                     }
@@ -107,21 +103,36 @@
 
         _parseCorrectAnswer(correctAnswer) {
             this.correctWords = [];
-            const splitWords = correctAnswer.split(/\s+/).map(w => {
-                const subWords = w.split("-");
-                if (w.includes('-')) {
-                    // Append hyphen to first part so that it gets displayed
-                    subWords[0] += '-';
-                };
-                return subWords;
-            }).flat();
-            for (let word of splitWords) {
-                let displayWord = word.trim();
-                let appendStr = '&nbsp;';
-                if (displayWord.endsWith("-")) {
-                    appendStr = '-';
-                    displayWord = displayWord.slice(0, -1);
+            const splitTuples = correctAnswer.split(/\s+/).map(w => {
+                const subWords = w.split(SKIPPED_CHARS_GROUPED_RE).filter(w => w);
+                const subTuples = [];
+                let i = 0;
+                while (i < subWords.length) {
+                    if (SKIPPED_CHARS_RE.test(subWords[i])) {
+                        // Punctuation before an actual word; ignore
+                        // TODO: maybe handle showing this too somehow
+                        continue;
+                    }
+                    const tuple = [subWords[i].trim()];
+                    if (SKIPPED_CHARS_RE.test(subWords[i + 1])) {
+                        let punct = subWords[i + 1];
+                        // Add a space after all punctuation suffixes, except if it's a hyphen
+                        if (punct !== '-') {
+                            punct += '&nbsp;';
+                        }
+                        tuple.push(punct);
+                        i += 2;
+                    } else {
+                        tuple.push('&nbsp;');
+                        i++;
+                    }
+                    subTuples.push(tuple);
                 }
+
+                return subTuples;
+            }).flat();
+            for (let [word, appendStr] of splitTuples) {
+                let displayWord = word;
                 let inputType = 'firstletter';
                 let wordToType = displayWord.replace(SKIPPED_CHARS_RE, "");
                 if (!/^\p{Number}+$/u.test(wordToType)) {
