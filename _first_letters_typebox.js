@@ -27,6 +27,7 @@
             e.target.innerHTML = '';
             const context = inputContexts[i];
             const correctWords = context.correctWords;
+
             if (context.userInput.length !== inputWords.length) {
                 context.userInput.push(inputWords[inputWords.length - 1]);
             } else {
@@ -34,15 +35,10 @@
                 context.userInput[context.userInput.length - 1] += lastInputWord[lastInputWord.length - 1];
             }
 
-            for (const [j, inputWord] of Object.entries(inputWords)) {
-
+            for (let j = 0; j < inputWords.length; j++) {
                 const userWord = context.userInput[j];
                 let classes = '';
-                if (!correctWords[j]) {
-                    // More input words than there are answer words
-                    classes = 'wrong-section';
-                }
-                else if (!correctWords[j].wordToType) {
+                if (!correctWords[j].wordToType) {
                     // Word consisting entirely of stripped letters (e.g. punctuation)
                     classes = 'correct-section';
                 }
@@ -64,16 +60,20 @@
                         e.target.appendChild(span);
                     }
                     if (userWord.length === correctWords[j].wordToType.length && correctWords[j].inputType === 'number') {
-                        // If user typed all required digits, append the delimiting string
-                        e.target.children[e.target.children.length - 1].innerHTML += correctWords[j].appendStr;
+                        // If user typed all required digits and this is not the last word to type, append the delimiting string
+                        if (j < correctWords.length - 1) {
+                            e.target.children[e.target.children.length - 1].innerHTML += correctWords[j].appendStr;
+                        }
                     }
                     continue;
                 }
                 const span = document.createElement("span");
                 span.classList.add(classes);
-                // In the case of excess input words, display the input word, otherwise display the correct word
-                span.innerHTML = correctWords[j] ? correctWords[j].displayWord : inputWord;
-                span.innerHTML += correctWords[j] ? correctWords[j].appendStr : '&nbsp;';
+                span.innerHTML = correctWords[j].displayWord;
+                // Do not add a space if this is the last word
+                if (j < correctWords.length - 1) {
+                    span.innerHTML += correctWords[j].appendStr;
+                }
                 e.target.appendChild(span);
             }
 
@@ -82,16 +82,26 @@
         };
     }
 
-    function onKeyDown(event) {
-        if (["Space", "Backspace"].includes(event.code)) {
-            event.preventDefault();
-        }
-        if (["Enter", "NumpadEnter"].includes(event.code)) {
-            // Show answer side
-            if (window.bridgeCommand) {
-                bridgeCommand("ans");
+    function onKeyDownHandler(i) {
+        return (event) => {
+            if (["Space", "Backspace"].includes(event.code)) {
+                event.preventDefault();
             }
-            event.preventDefault();
+            if (["Enter", "NumpadEnter"].includes(event.code)) {
+                // Show answer side
+                if (window.bridgeCommand) {
+                    bridgeCommand("ans");
+                }
+                event.preventDefault();
+            }
+
+            const context = inputContexts[i];
+            const correctWords = context.correctWords;
+            const userInput = context.userInput;
+            // Prevent typing in more words than is correct
+            if (userInput.length >= correctWords.length && correctWords[correctWords.length - 1].wordToType.length === userInput[userInput.length - 1].length) {
+                event.preventDefault();
+            }
         }
     }
 
@@ -169,10 +179,11 @@
         }
         inputContexts[i] = new InputContext(element.dataset.answer);
         input.addEventListener("input", firstLettersInputHandler(i));
-        input.addEventListener("keydown", onKeyDown);
+        input.addEventListener("keydown", onKeyDownHandler(i));
         clearButton.addEventListener("click", (() => {
             return (e) => {
                 e.target.previousElementSibling.textContent = '';
+                clearOldUserInput(inputContexts[i], 0);
             }
         })(i));
     }
