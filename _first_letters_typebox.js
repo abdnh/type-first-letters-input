@@ -126,8 +126,7 @@
                     const tuple = [subWords[i].trim()];
                     if (SKIPPED_CHARS_RE.test(subWords[i + 1])) {
                         let punct = subWords[i + 1];
-                        // Add a space after all punctuation suffixes, except if it's a hyphen
-                        if (punct !== '-') {
+                        if (i + 1 == subWords.length - 1) {
                             punct += '&nbsp;';
                         }
                         tuple.push(punct);
